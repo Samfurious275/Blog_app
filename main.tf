@@ -74,7 +74,6 @@ resource "azurerm_log_analytics_workspace" "workspace" {
   retention_in_days   = 30
 }
 
-
 resource "azurerm_monitor_diagnostic_setting" "app_insights" {
   name                       = "webapp-monitoring"
   target_resource_id         = azurerm_linux_web_app.app.id
