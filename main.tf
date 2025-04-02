@@ -20,8 +20,7 @@ resource "azurerm_app_service" "app" {
   name                = var.app_service_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  app_service_plan_id = azurerm_app_service_plan.plan.id
-
+  app_service_plan_id = azurerm_service_plan.plan.id
   site_config {
     always_on = true
   }
@@ -31,7 +30,6 @@ resource "azurerm_app_service" "app" {
   }
 }
 
-# MSSQL Server
 resource "azurerm_mssql_server" "sql_server" {
   name                         = var.sql_server_name
   resource_group_name          = azurerm_resource_group.rg.name
@@ -51,9 +49,8 @@ resource "azurerm_mssql_database" "sql_db" {
 
 
 
+data "azurerm_client_config" "current" {}
 
-
-# Key Vault
 resource "azurerm_key_vault" "kv" {
   name                        = var.key_vault_name
   location                    = azurerm_resource_group.rg.location
@@ -71,12 +68,9 @@ resource "azurerm_key_vault" "kv" {
   }
 }
 
-# Store SQL Connection String in Key Vault
-resource "azurerm_key_vault_secret" "sql_connection_string" {
-  name         = "sql-connection-string"
-  value        = "Server=tcp:${azurerm_sql_server.sql_server.fully_qualified_domain_name},1433;Initial Catalog=${var.sql_database_name};Persist Security Info=False;User ID=sqladmin;Password=SecurePassword123!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-  key_vault_id = azurerm_key_vault.kv.id
-}
+
+
+
 
 
 resource "azurerm_log_analytics_workspace" "workspace" {
