@@ -4,16 +4,16 @@ resource "azurerm_resource_group" "rg" {
   location = var.location
 }
 
-# App Service Plan
-resource "azurerm_app_service_plan" "plan" {
+resource "azurerm_service_plan" "plan" {
   name                = var.app_service_plan_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
+  sku_name            = "S1" # Example SKU
+  os_type             = "Linux" # or "Windows"
 }
+
+
+
 
 # App Service
 resource "azurerm_app_service" "app" {
@@ -31,8 +31,8 @@ resource "azurerm_app_service" "app" {
   }
 }
 
-# SQL Server
-resource "azurerm_sql_server" "sql_server" {
+# MSSQL Server
+resource "azurerm_mssql_server" "sql_server" {
   name                         = var.sql_server_name
   resource_group_name          = azurerm_resource_group.rg.name
   location                     = azurerm_resource_group.rg.location
@@ -41,14 +41,17 @@ resource "azurerm_sql_server" "sql_server" {
   administrator_login_password = "SecurePassword123!"
 }
 
-# SQL Database
-resource "azurerm_sql_database" "sql_db" {
-  name                = var.sql_database_name
-  server_id           = azurerm_sql_server.sql_server.id
-  collation           = "SQL_Latin1_General_CP1_CI_AS"
-  max_size_bytes      = 524288000
-  requested_service_objective_name = "S0"
+# MSSQL Database
+resource "azurerm_mssql_database" "sql_db" {
+  name      = var.sql_database_name
+  server_id = azurerm_mssql_server.sql_server.id
+  collation = "SQL_Latin1_General_CP1_CI_AS"
+  sku_name  = "Basic" # Example SKU
 }
+
+
+
+
 
 # Key Vault
 resource "azurerm_key_vault" "kv" {
@@ -75,7 +78,17 @@ resource "azurerm_key_vault_secret" "sql_connection_string" {
   key_vault_id = azurerm_key_vault.kv.id
 }
 
-# Azure Monitor - Diagnostic Settings
+
+resource "azurerm_log_analytics_workspace" "workspace" {
+  name                = "example-workspace"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "PerGB2018" # Example SKU
+  retention_in_days   = 30
+}
+
+
+
 resource "azurerm_monitor_diagnostic_setting" "app_insights" {
   name               = "webapp-monitoring"
   target_resource_id = azurerm_app_service.app.id
