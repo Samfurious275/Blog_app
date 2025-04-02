@@ -13,22 +13,15 @@ resource "azurerm_service_plan" "plan" {
 }
 
 
-
-
-# App Service
-resource "azurerm_app_service" "app" {
+resource "azurerm_linux_web_app" "app" {
   name                = var.app_service_name
-  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  app_service_plan_id = azurerm_service_plan.plan.id
-  site_config {
-    always_on = true
-  }
+  location            = azurerm_resource_group.rg.location
+  service_plan_id     = azurerm_service_plan.plan.id
 
-  app_settings = {
-    "WEBSITE_RUN_FROM_PACKAGE" = "1"
-  }
+  site_config {}
 }
+
 
 resource "azurerm_mssql_server" "sql_server" {
   name                         = var.sql_server_name
@@ -82,11 +75,9 @@ resource "azurerm_log_analytics_workspace" "workspace" {
 }
 
 
-
 resource "azurerm_monitor_diagnostic_setting" "app_insights" {
-  name               = "webapp-monitoring"
-  target_resource_id = azurerm_app_service.app.id
-
+  name                       = "webapp-monitoring"
+  target_resource_id         = azurerm_linux_web_app.app.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.workspace.id
 
   log {
